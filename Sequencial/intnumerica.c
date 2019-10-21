@@ -3,7 +3,8 @@
 #include<math.h>
 
 #define debug printf
-#define NUM_FUNC 1
+#define print_usuario 
+#define NUM_FUNC 7
 
 typedef struct{
 	double a,b;
@@ -13,6 +14,8 @@ typedef struct{
 
 
 intervalo *construtor_intervalo();
+
+void destrutor_intervalo(intervalo *inter);
 
 void define_intervalo(intervalo *inter, double a, double b, double e, double (*func)(double));
 
@@ -39,23 +42,23 @@ int main(int argc, char *argv[]){
 	intervalo *inter = construtor_intervalo();
 	double a, b, e;
 	for(int i=0; i<NUM_FUNC; i++){
-		printf("FUNCAO %c\n", (char) (i+'a'));
+		print_usuario("FUNCAO %c\n", (char) (i+'a'));
 		
-		printf("\tDigite o comeco do intervalo: ");
+		print_usuario("\tDigite o comeco do intervalo: ");
 		scanf("%lf",&a);
 
-		printf("\tDigite o fim do intervalo: ");
+		print_usuario("\tDigite o fim do intervalo: ");
 		scanf("%lf",&b);
 
-		printf("\tDigite o erro maximo aceitavel: ");
+		print_usuario("\tDigite o erro maximo aceitavel: ");
 		scanf("%lf", &e);
 
 		define_intervalo(inter,a,b,e,funcoes[i]);
 
-		printf("Integral = %.20lf\n", integral(*inter));
+		printf("Integral = %.7lf\n", integral(*inter));
 	}
 
-	free(inter);
+	destrutor_intervalo(inter);
 
 	return 0;
 }
@@ -64,6 +67,10 @@ int main(int argc, char *argv[]){
 intervalo *construtor_intervalo(){
 	intervalo *inter = malloc(sizeof(intervalo));
 	return inter;
+}
+
+void destrutor_intervalo(intervalo *inter){
+	free(inter);
 }
 
 void define_intervalo(intervalo *inter, double a, double b, double e, double (*func)(double)){
