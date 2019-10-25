@@ -11,8 +11,12 @@
 typedef struct str_intervalo{
 	double a,b;
 	double e;
-	int possivel_retornar; //2 se é possível, 0 ou 1 se não é
+	
+	int possivel_retornar; //2 se é possível, 0 ou 1 se não é	
 	double valor_retorno;
+	
+	double area_retangulo;
+
 	struct str_intervalo * pai;
 	double (*func)(double);
 }intervalo;
@@ -49,7 +53,7 @@ double g(double x);
 
 
 int igual(double a, double b, double e);
-double area_retangulo(intervalo *inter);
+void define_area_retangulo(intervalo *inter);
 void integral(intervalo *inter);
 
 
@@ -59,7 +63,7 @@ double (*funcoes[])(double) = {a,b,c,d,e,f,g};
 int main(int argc, char *argv[]){
 	
 	double a, b, e;
-	for(int i=1; i<NUM_FUNC; i++){
+	for(int i=0; i<NUM_FUNC; i++){
 		intervalo *inter = construtor_intervalo();
 		print_usuario("FUNCAO %c\n", (char) (i+'a'));
 		
@@ -139,6 +143,9 @@ void define_intervalo(intervalo *inter, double a, double b, double e, double (*f
 	inter->possivel_retornar=0;
 	inter->valor_retorno=ZERO;
 	inter->func=func;
+	
+	define_area_retangulo(inter);
+	
 	inter->pai=pai;
 }
 
@@ -172,74 +179,91 @@ int igual(double a, double b, double e){
 }
 
 
-double area_retangulo(intervalo *inter){
+void define_area_retangulo(intervalo *inter){
 	double a=inter->a;
 	double b=inter->b;
 	double m=(a+b)/2;
 	
-	return (b-a) * inter->func(m);
+	inter->area_retangulo = (b-a) * inter->func(m);
 }
 
 //integral
 void integral(intervalo *inter){
-
+	
+	void subproblema_resolvido(intervalo *t);
+	
 	while(1){
+		
 		if(esperando+resolvendo == 0){
+		
 			break;
 		}
+		
 		intervalo *t = pop();
 		esperando--;
 		resolvendo++;
 		
 			
 		if(t->possivel_retornar==POSSIVEL){
-			if(t->pai==NULL){
-				ans = t->valor_retorno;
-			}
-			else{
-				t->pai->valor_retorno += t->valor_retorno;
-				t->pai->possivel_retornar++;
-				if(t->pai->possivel_retornar == POSSIVEL)
-					push(t->pai);
-			}
-			destrutor_intervalo(t);
+		
+			subproblema_resolvido(t);
 			resolvendo--; 
+			
+			destrutor_intervalo(t);
+		
 		}else{
 			intervalo *inter_menor1 = construtor_intervalo(),
 					  *inter_menor2 = construtor_intervalo();
-			int m = (t->a + t->b)/2;
+					  
+			double m = (t->a + t->b)/2;
+			
 			define_intervalo(inter_menor1, t->a, m, t->e, t->func, t);
 			define_intervalo(inter_menor2, m, t->b, t->e, t->func, t);
 			
-			double area_maior = area_retangulo(t),
-			som_areas_menores = area_retangulo(inter_menor1)
-			                  + area_retangulo(inter_menor2);
+			double area_maior = t->area_retangulo,
+			som_areas_menores = inter_menor1->area_retangulo
+			                  + inter_menor2->area_retangulo;
 			
 			if(igual(area_maior, som_areas_menores, inter->e)){
-				t->valor_retorno = area_maior;
-				if(t->pai==NULL){
-					ans = t->valor_retorno;
-				}
-				else{
-					t->pai->valor_retorno += t->valor_retorno;
-					t->pai->possivel_retornar++;
-					if(t->pai->possivel_retornar == POSSIVEL)
-						push(t->pai);
-						
-				} 
+			
+				t->valor_retorno = t->area_retangulo;
+			
+				subproblema_resolvido(t);
+				resolvendo--;
+				
+				destrutor_intervalo(t);
 				destrutor_intervalo(inter_menor1);
 				destrutor_intervalo(inter_menor2);
-				destrutor_intervalo(t);
-				resolvendo--; 
+				
+				 
 			}
 			else{
+			
 				push(inter_menor1);
 				push(inter_menor2);
 				esperando +=2 ;
+				
 			}
 		
 		}	
 			
 	}
 }
+
+void subproblema_resolvido(intervalo *t){
+	if(t->pai==NULL){
+		ans = t->valor_retorno;
+	}
+	else{
+		
+		t->pai->valor_retorno += t->valor_retorno;
+		t->pai->possivel_retornar++;
+		if(t->pai->possivel_retornar == POSSIVEL)
+			push(t->pai);
+			
+			
+	} 	
+	
+}
+
 

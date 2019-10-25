@@ -4,7 +4,7 @@
 
 #define debug printf
 #define print_usuario 
-#define NUM_FUNC 7
+#define NUM_FUNC 1
 
 typedef struct{
 	double a,b;
@@ -127,6 +127,8 @@ double integral(intervalo *inter){
 	double e=inter->e;
 	double m = (a+b)/2;
 	
+	debug("\ta=%lf b=%lf m=%lf\n",a,b,m);
+	
 	intervalo *inter_menor1 = construtor_intervalo(), *inter_menor2 = construtor_intervalo();	
 	define_intervalo(inter_menor1, a, m, e,inter->func);
 	define_intervalo(inter_menor2, m, b, e,inter->func);
@@ -135,6 +137,7 @@ double integral(intervalo *inter){
 	double soma_areas_menores = area_retangulo(inter_menor1) + area_retangulo(inter_menor2);
 
 	
+	debug("\tmai=%lf men=%lf\n",area_maior,soma_areas_menores);
 	if(igual(soma_areas_menores, area_maior,inter->e)){
 	
 		destrutor_intervalo(inter_menor1);
