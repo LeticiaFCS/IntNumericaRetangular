@@ -3,7 +3,9 @@
 #include<math.h>
 #include "timer.h"
 
-#define debug printf
+#include<pthread.h>
+
+#define debug 
 #define print_usuario 
 #define NUM_FUNC 7
 #define ZERO 0.0000000000
@@ -55,19 +57,30 @@ double g(double x);
 
 int igual(double a, double b, double e);
 void define_area_retangulo(intervalo *inter);
-void integral(intervalo *inter);
+void * integral(void *in);
 
 
 double (*funcoes[])(double) = {a,b,c,d,e,f,g};
+
+pthread_mutex_t mutex;
+pthread_cond_t cond;
 
 
 int main(int argc, char *argv[]){
 	
 	double a, b, e;
+	int t, i, j;
+	
+	pthread_t * t_integral;
+	int * tid;
+	pthread_mutex_init(&mutex, NULL);
+	pthread_cond_init(&cond, NULL);
+	
+	
 	double ini, fim;
 	
-	for(int i=0; i<NUM_FUNC; i++){
-		GET_TIME(ini);
+	for(i=0; i<NUM_FUNC; i++){
+	
 		intervalo *inter = construtor_intervalo();
 		print_usuario("FUNCAO %c\n", (char) (i+'a'));
 		
@@ -79,16 +92,43 @@ int main(int argc, char *argv[]){
 
 		print_usuario("\tDigite o erro maximo aceitavel: ");
 		scanf("%lf", &e);
+		
+		print_usuario("\tDigite o numero de threads: ");
+		scanf("%d", &t);
 
 		define_intervalo(inter,a,b,e,funcoes[i],NULL);
 		init(inter);
-		integral(inter);
+		
+		t_integral = malloc(sizeof(pthread_t)*t);
+		tid = malloc(sizeof(int)*t);	
+		if(t_integral == NULL || tid == NULL){
+			printf("Erro malloc()\n");
+			exit(-1);
+		}
+		
+		for(j=0;j<t;j++){
+			tid[j]=j;
+			
+			if(pthread_create(&t_integral[j],NULL,integral, (void *) &tid[j])){
+				printf("Erro pthread_create()\n");
+				exit(-1);
+			}
+		}
+		for(int j=0;j<t;j++){
+			if(pthread_join(t_integral[j],NULL)){
+				printf("Erro pthread_join()\n");
+				exit(-1);
+			}
+		}
+		free(t_integral);
+		
 		printf("Integral = %.16lf\n", ans);
 		
 	}
 	
-	
-	
+	pthread_mutex_destroy(&mutex);
+	pthread_cond_destroy(&cond);
+	pthread_exit(NULL);
 
 	return 0;
 }
@@ -111,6 +151,7 @@ void push(intervalo *inter){
 
 intervalo * pop(){
 	if(pilha_vazia()){
+		debug("pilha vazia\n");
 		exit(-1);
 	}
 	intervalo * inter = topo->inter;
@@ -193,14 +234,20 @@ void define_area_retangulo(intervalo *inter){
 }
 
 //integral
-void integral(intervalo *inter){
+void *integral(void *arg){
 	
 	void subproblema_resolvido(intervalo *t);
 	
 	while(1){
 		
-		if(esperando+resolvendo == 0){
+		pthread_mutex_lock(&mutex);
 		
+		while((esperando+resolvendo != 0) && (esperando == 0)){
+			pthread_cond_wait(&cond, &mutex);
+		}
+		
+		if(esperando+resolvendo == 0){
+			pthread_mutex_unlock(&mutex);
 			break;
 		}
 		
@@ -208,11 +255,15 @@ void integral(intervalo *inter){
 		esperando--;
 		resolvendo++;
 		
+		pthread_mutex_unlock(&mutex);
 			
 		if(t->possivel_retornar==POSSIVEL){
 		
+			pthread_mutex_lock(&mutex);
 			subproblema_resolvido(t);
 			resolvendo--; 
+			pthread_cond_broadcast(&cond);
+			pthread_mutex_unlock(&mutex);
 			
 			destrutor_intervalo(t);
 		
@@ -229,12 +280,15 @@ void integral(intervalo *inter){
 			som_areas_menores = inter_menor1->area_retangulo
 			                  + inter_menor2->area_retangulo;
 			
-			if(igual(area_maior, som_areas_menores, inter->e)){
+			if(igual(area_maior, som_areas_menores, t->e)){
 			
 				t->valor_retorno = t->area_retangulo;
-			
+				
+				pthread_mutex_lock(&mutex);
 				subproblema_resolvido(t);
 				resolvendo--;
+				pthread_cond_broadcast(&cond);
+				pthread_mutex_unlock(&mutex);
 				
 				destrutor_intervalo(t);
 				destrutor_intervalo(inter_menor1);
@@ -243,19 +297,25 @@ void integral(intervalo *inter){
 				 
 			}
 			else{
-			
+				
+				pthread_mutex_lock(&mutex);
 				push(inter_menor1);
 				push(inter_menor2);
-				esperando +=2 ;
 				resolvendo--;
+				esperando +=2 ;
+				pthread_cond_broadcast(&cond);
+				pthread_mutex_unlock(&mutex);
+				
 			}
 		
 		}	
 			
 	}
+	pthread_exit(NULL);
 }
 
 void subproblema_resolvido(intervalo *t){
+	
 	if(t->pai==NULL){
 		ans = t->valor_retorno;
 	}
@@ -265,7 +325,7 @@ void subproblema_resolvido(intervalo *t){
 		t->pai->possivel_retornar++;
 		if(t->pai->possivel_retornar == POSSIVEL){
 			esperando++;
-			push(t->pai);	
+			push(t->pai);
 		}
 			
 			
