@@ -3,7 +3,7 @@
 #include<math.h>
 #include "timer.h"
 
-#define debug printf
+#define debug 
 #define print_usuario 
 #define NUM_FUNC 7
 #define ZERO 0.0000000000
@@ -29,7 +29,7 @@ typedef struct str_no{
 
 int resolvendo, esperando;
 
-double ans;
+double resposta;
 
 no *topo = NULL;
 
@@ -55,7 +55,9 @@ double g(double x);
 
 int igual(double a, double b, double e);
 void define_area_retangulo(intervalo *inter);
-void integral(intervalo *inter);
+void integral();
+
+void boba();
 
 
 double (*funcoes[])(double) = {a,b,c,d,e,f,g};
@@ -64,10 +66,14 @@ double (*funcoes[])(double) = {a,b,c,d,e,f,g};
 int main(int argc, char *argv[]){
 	
 	double a, b, e;
-	double ini, fim;
+	double ini_inicializacao, fim_inicializacao;
+	double ini_sequencial, fim_sequencial;
+	
 	
 	for(int i=0; i<NUM_FUNC; i++){
-		GET_TIME(ini);
+		GET_TIME(ini_inicializacao);
+		
+		
 		intervalo *inter = construtor_intervalo();
 		print_usuario("FUNCAO %c\n", (char) (i+'a'));
 		
@@ -82,8 +88,25 @@ int main(int argc, char *argv[]){
 
 		define_intervalo(inter,a,b,e,funcoes[i],NULL);
 		init(inter);
+		
+		
+		GET_TIME(fim_inicializacao);
+		ini_sequencial = fim_inicializacao;
+		
+		
 		integral(inter);
-		printf("Integral = %.16lf\n", ans);
+		
+		
+		GET_TIME(fim_sequencial);
+	
+		printf("Funcao %c com a=%.10lf b=%.10lf e=%.10lf\n",(char) (i+'a'), a, b, e);
+		printf("Integral = %.10lf\n", resposta);
+		printf("\ttempo para inicializacao = %.10lf\n",fim_inicializacao - ini_inicializacao);
+		printf("\ttempo de processamento = %.10lf\n",fim_sequencial - ini_sequencial);
+		printf("\ttempo total = %.10lf\n\n",fim_sequencial - ini_sequencial);
+		
+		
+		
 		
 	}
 	
@@ -122,7 +145,7 @@ intervalo * pop(){
 
 void init(intervalo *inter){
 	resolvendo=0;
-	ans=ZERO;
+	resposta=ZERO;
 	esperando=1;
 	while(!pilha_vazia){
 		intervalo * aux = pop();
@@ -152,6 +175,7 @@ void define_intervalo(intervalo *inter, double a, double b, double e, double (*f
 	define_area_retangulo(inter);
 	
 	inter->pai=pai;
+	boba();
 }
 
 //funções para as quais iremos calcular as integrais
@@ -192,8 +216,9 @@ void define_area_retangulo(intervalo *inter){
 	inter->area_retangulo = (b-a) * inter->func(m);
 }
 
+
 //integral
-void integral(intervalo *inter){
+void integral(){
 	
 	void subproblema_resolvido(intervalo *t);
 	
@@ -205,6 +230,7 @@ void integral(intervalo *inter){
 		}
 		
 		intervalo *t = pop();
+		
 		esperando--;
 		resolvendo++;
 		
@@ -229,7 +255,7 @@ void integral(intervalo *inter){
 			som_areas_menores = inter_menor1->area_retangulo
 			                  + inter_menor2->area_retangulo;
 			
-			if(igual(area_maior, som_areas_menores, inter->e)){
+			if(igual(area_maior, som_areas_menores, t->e)){
 			
 				t->valor_retorno = t->area_retangulo;
 			
@@ -257,7 +283,7 @@ void integral(intervalo *inter){
 
 void subproblema_resolvido(intervalo *t){
 	if(t->pai==NULL){
-		ans = t->valor_retorno;
+		resposta = t->valor_retorno;
 	}
 	else{
 		
@@ -271,6 +297,11 @@ void subproblema_resolvido(intervalo *t){
 			
 	} 	
 	
+}
+
+void boba(){
+	int i;
+	for(i=0;i<100;i++);
 }
 
 

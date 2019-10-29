@@ -1,5 +1,14 @@
-/* Example:  
- *    #include "clock_timer.h"
+/* File:     timer.h
+ *
+ * Purpose:  Define a macro that returns the number of seconds that 
+ *           have elapsed since some point in the past.  The timer
+ *           should return times with microsecond accuracy.
+ *
+ * Note:     The argument passed to the GET_TIME macro should be
+ *           a double, *not* a pointer to a double.
+ *
+ * Example:  
+ *    #include "timer.h"
  *    . . .
  *    double start, finish, elapsed;
  *    . . .
@@ -10,21 +19,20 @@
  *    GET_TIME(finish);
  *    elapsed = finish - start;
  *    printf("The code to be timed took %e seconds\n", elapsed);
-*/
-
-#ifndef _CLOCK_TIMER_H
-#define _CLOCK_TIMER_H
+ *
+ * IPP:  Section 3.6.1 (pp. 121 and ff.) and Section 6.1.2 (pp. 273 and ff.)
+ * Author:  Peter Pacheco
+ */
+#ifndef _TIMER_H_
+#define _TIMER_H_
 
 #include <sys/time.h>
-#define BILLION 1000000000L
 
 /* The argument now should be a double (not a pointer to a double) */
 #define GET_TIME(now) { \
-   struct timespec time; \
-   clock_gettime(CLOCK_MONOTONIC_RAW, &time); \
-   now = time.tv_sec + time.tv_nsec/1000000000.0; \
+   struct timeval t; \
+   gettimeofday(&t, NULL); \
+   now = t.tv_sec + t.tv_usec/1000000.0; \
 }
+
 #endif
-//now = time.tv_sec + time.tv_nsec/1000000000.0; //seconds
-//now = (BILLION * time.tv_sec) + time.tv_nsec; //nanoseconds
-//clock_gettime(CLOCK_MONOTONIC_RAW, &time); 

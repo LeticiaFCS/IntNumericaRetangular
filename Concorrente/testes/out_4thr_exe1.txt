@@ -1,0 +1,42 @@
+Funcao a com a=1.2350000000 b=20.3678900000 e=0.0000001000
+Integral = 225.7957490260
+	tempo para inicializacao = 0.0001321390
+	tempo de processamento = 0.0004946690
+	tempo total = 0.0004946690
+
+Funcao b com a=0.2730000000 b=0.9860000000 e=0.0000000010
+Integral = 0.5142699701
+	tempo para inicializacao = 0.0000092340
+	tempo de processamento = 0.0027718610
+	tempo total = 0.0027718610
+
+Funcao c com a=10.2730000000 b=37.9867000000 e=0.0000100000
+Integral = 17910.1115242010
+	tempo para inicializacao = 0.0000103860
+	tempo de processamento = 0.0021770780
+	tempo total = 0.0021770780
+
+Funcao d com a=-2.3700000000 b=0.9780000000 e=0.0000010000
+Integral = 0.7666682529
+	tempo para inicializacao = 0.0000386250
+	tempo de processamento = 0.0006748990
+	tempo total = 0.0006748990
+
+Funcao e com a=-2.3700000000 b=0.9780000000 e=0.0000001000
+Integral = 0.3504551127
+	tempo para inicializacao = 0.0000056740
+	tempo de processamento = 0.0008090610
+	tempo total = 0.0008090610
+
+Funcao f com a=-2.3700000000 b=0.9780000000 e=0.0000000100
+Integral = 0.9818998396
+	tempo para inicializacao = 0.0000034590
+	tempo de processamento = 0.0018460170
+	tempo total = 0.0018460170
+
+Funcao g com a=-2.3700000000 b=100.9780000000 e=0.0000000010
+Integral = 130062.5260201833
+	tempo para inicializacao = 0.0000036830
+	tempo de processamento = 0.0687068510
+	tempo total = 0.0687068510
+

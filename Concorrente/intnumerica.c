@@ -31,7 +31,7 @@ typedef struct str_no{
 
 int resolvendo, esperando;
 
-double ans;
+double resposta;
 
 no *topo = NULL;
 
@@ -59,6 +59,8 @@ int igual(double a, double b, double e);
 void define_area_retangulo(intervalo *inter);
 void * integral(void *in);
 
+void boba();
+
 
 double (*funcoes[])(double) = {a,b,c,d,e,f,g};
 
@@ -77,10 +79,13 @@ int main(int argc, char *argv[]){
 	pthread_cond_init(&cond, NULL);
 	
 	
-	double ini, fim;
+	double ini_inicializacao, fim_inicializacao;
+	double ini_threads, fim_threads;
 	
 	for(i=0; i<NUM_FUNC; i++){
-	
+		GET_TIME(ini_inicializacao);
+		
+		
 		intervalo *inter = construtor_intervalo();
 		print_usuario("FUNCAO %c\n", (char) (i+'a'));
 		
@@ -98,6 +103,10 @@ int main(int argc, char *argv[]){
 
 		define_intervalo(inter,a,b,e,funcoes[i],NULL);
 		init(inter);
+		
+		
+		GET_TIME(fim_inicializacao);
+		ini_threads = fim_inicializacao;
 		
 		t_integral = malloc(sizeof(pthread_t)*t);
 		tid = malloc(sizeof(int)*t);	
@@ -122,7 +131,15 @@ int main(int argc, char *argv[]){
 		}
 		free(t_integral);
 		
-		printf("Integral = %.16lf\n", ans);
+		
+		GET_TIME(fim_threads);
+	
+			
+		printf("Funcao %c com a=%.10lf b=%.10lf e=%.10lf\n",(char) (i+'a'), a, b, e);
+		printf("Integral = %.10lf\n", resposta);
+		printf("\ttempo para inicializacao = %.10lf\n",fim_inicializacao - ini_inicializacao);
+		printf("\ttempo de processamento = %.10lf\n",fim_threads - ini_threads);
+		printf("\ttempo total = %.10lf\n\n",fim_threads - ini_threads);
 		
 	}
 	
@@ -163,7 +180,7 @@ intervalo * pop(){
 
 void init(intervalo *inter){
 	resolvendo=0;
-	ans=ZERO;
+	resposta=ZERO;
 	esperando=1;
 	while(!pilha_vazia){
 		intervalo * aux = pop();
@@ -193,6 +210,7 @@ void define_intervalo(intervalo *inter, double a, double b, double e, double (*f
 	define_area_retangulo(inter);
 	
 	inter->pai=pai;
+	boba();
 }
 
 //funções para as quais iremos calcular as integrais
@@ -233,6 +251,7 @@ void define_area_retangulo(intervalo *inter){
 	inter->area_retangulo = (b-a) * inter->func(m);
 }
 
+
 //integral
 void *integral(void *arg){
 	
@@ -252,6 +271,8 @@ void *integral(void *arg){
 		}
 		
 		intervalo *t = pop();
+
+
 		esperando--;
 		resolvendo++;
 		
@@ -317,7 +338,7 @@ void *integral(void *arg){
 void subproblema_resolvido(intervalo *t){
 	
 	if(t->pai==NULL){
-		ans = t->valor_retorno;
+		resposta = t->valor_retorno;
 	}
 	else{
 		
@@ -331,6 +352,11 @@ void subproblema_resolvido(intervalo *t){
 			
 	} 	
 	
+}
+
+void boba(){
+	int i;
+	for(i=0;i<500;i++);
 }
 
 
